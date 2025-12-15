@@ -3,18 +3,22 @@ import re
 import sys
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QFileDialog,
-    QComboBox, QHBoxLayout
+    QComboBox, QHBoxLayout, QMessageBox
 )
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtCore import Qt
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from core.detector import detect_format
 from core.identifier import extract_game_name
 from controller.converter import convert_save
 from core.psp_sfo_parser import parse_param_sfo
-from core.config import set_ppsspp_path
+from core.config import set_ppsspp_path, get_ppsspp_path
 from core.launcher import launch_ppsspp
-from PyQt5.QtWidgets import QMessageBox
+from core.game_map import get_iso_for_disc_id
+#from PyQt5.QtWidgets import QMessageBox
+from gui.local_server import start_local_agent_server
 
 
 # ISO path map
@@ -23,10 +27,17 @@ from core.game_map import get_iso_for_disc_id
 class SaveTranslatorApp(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Cross-Platform Save Translator")
+        self.setWindowTitle("SaveNexus - Cross-Platform Save Translator")
         self.setGeometry(100, 100, 600, 380)
         self.file_path = None
         self.disc_id = None
+        #Start the local agent server in background
+        try:
+            start_local_agent_server(port=8765)
+            print("✓ Local Agent API started on http://127.0.0.1:8765")
+        except Exception as e:
+            print(f"⚠ Warning: Could not start local agent: {e}")
+            
         self.initUI()
 
     def initUI(self):
